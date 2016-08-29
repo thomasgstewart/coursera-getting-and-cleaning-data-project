@@ -6,4 +6,4 @@ This project includes the following files:
 
 * **run_analysis.R** - An .R file which downloads the data then generates a tidy dataset.
 
-* **data-dictionary.md**
+* **CodeBook.md** - A description of the variables in the tidy dataset which is output by `run_analysis.R`.

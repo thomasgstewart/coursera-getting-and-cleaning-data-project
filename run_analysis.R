@@ -1,16 +1,17 @@
----
-title: "get-and-clean-project-data"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# FUNCTIONS (SOME USER WRITTEN)
 library(data.table)
-```
+`%|%` <- function(a,b) paste0(a,b)
+namify <- function(txt){
+  txt <- gsub("\\.|-", "_", txt)        # Change . or - to _
+  txt <- gsub(" +$|^ +|\\(|\\)","",txt) # Remove leading/trailing spaces, (, )
+  txt <- gsub("%","pct",txt)            # Change % to pct
+  txt <- gsub("([a-z])([A-Z])","\\1_\\2", txt) # Remove camel-case
+  txt <- gsub(" ","_",txt)              # Change interior space to underscore
+  txt <- tolower(txt)                   # to lower case
+  txt <- gsub("[^_[:alnum:]]","",txt)   # Remove punctuation
+  return(txt)
+}
 
-## DOWNLOAD AND UNZIP DATA
-
-```{r}
 # CREATE A TEMPORARY FOLDER TO DOWNLOAD DATA
 tempfolder <- tempdir()
 
@@ -49,7 +50,7 @@ data <- list()
 for(g in groups){
   x_file <- "./" %|% g %|% "/X_" %|% g %|% ".txt"
   x_data <- fread(x_file, select = feature_idx)
-
+  
   y_file <- gsub("X_", "y_", x_file)
   y_data <- fread(y_file)
   
@@ -63,16 +64,7 @@ for(g in groups){
 data <- rbindlist(data)
 
 # CHANGE VARIABLE NAMES - MAKE VARIABLE NAMES EASY TO READ
-namify <- function(txt){
-  txt <- gsub("\\.|-", "_", txt)          # Change . or - to _
-  txt <- gsub(" +$|^ +|\\(|\\)","",txt) # Remove leading/trailing spaces, (, )
-  txt <- gsub("%","pct",txt)            # Change % to pct
-  txt <- gsub("([a-z])([A-Z])","\\1_\\2", txt) # Remove camel-case
-  txt <- gsub(" ","_",txt)              # Change interior space to underscore
-  txt <- tolower(txt)                   # to lower case
-  txt <- gsub("[^_[:alnum:]]","",txt)   # Remove punctuation
-  return(txt)
-}
+
 feature_names <- namify(features[feature_idx, 2])
 
 setnames(data, c(feature_names, "activity_code", "group", "id"))
@@ -91,7 +83,3 @@ data_summary <- data[, lapply(.SD, mean), by = .(id, activity), .SDcols = featur
 setkey(data_summary, id, activity)
 
 write.table(data_summary, file = "tidy-dataset.txt", row.names = FALSE)
-```
-
-
-

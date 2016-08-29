@@ -1,0 +1,37 @@
+---
+title: "get-and-clean-project-data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## DOWNLOAD AND UNZIP DATA
+
+```{r}
+# CREATE A TEMPORARY FOLDER TO DOWNLOAD DATA
+tempfolder <- tempdir()
+
+# SET TEMP FOLDER AS WORKING DIR
+setwd(tempfolder)
+
+# DOWNLOAD ZIP FILE FROM INTERNET
+download.file(
+  url = "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip",
+  destfile = "dataset.zip"
+)
+
+# UNZIP FILE INTO TEMP FOLDER
+unzip("dataset.zip")
+
+# MOVE TO DATAFOLDER
+setwd("UCI HAR Dataset")
+
+
+
+list.files()
+```
+
+
+

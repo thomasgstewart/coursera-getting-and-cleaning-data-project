@@ -20,7 +20,7 @@ As it stands now, `run_analysis.R` will execute the following steps:
 
 2. run R commands to create the tidy dataset
 
-If you already have the data downloaded, you can alter the code to skip step 1.  (Details are provided in the script.)
+If you already have the data downloaded, you can alter the code to skip data download/unzip.  (Details are provided in the script.)
 
 ## OUTPUT OF THE ANALYSIS
 

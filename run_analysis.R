@@ -104,8 +104,6 @@ setkey(data_summary, id, activity)
 # form is very helpful and intuitive because it reflects the
 # hierarchical nature of the data- participants, activities, measures.
 
-feature_names[grep("_mean_", feature_names)]
-
 data_summary_long <- melt(
   data = data_summary, 
   id.vars = c("id","activity"),

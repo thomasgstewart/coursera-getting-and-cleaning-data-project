@@ -1,16 +1,26 @@
-# FUNCTIONS (SOME USER WRITTEN)
+# STEP 0: LOAD FUNCTIONS (SOME USER WRITTEN) ---------------
+# ----------------------------------------------------------
 library(data.table)
+
 `%|%` <- function(a,b) paste0(a,b)
+
 namify <- function(txt){
-  txt <- gsub("\\.|-", "_", txt)        # Change . or - to _
-  txt <- gsub(" +$|^ +|\\(|\\)","",txt) # Remove leading/trailing spaces, (, )
-  txt <- gsub("%","pct",txt)            # Change % to pct
+  txt <- gsub("\\.|-", "_", txt)               # Change . or - to _
+  txt <- gsub(" +$|^ +|\\(|\\)","",txt)        # Remove leading/trailing spaces, (, )
+  txt <- gsub("%","pct",txt)                   # Change % to pct
   txt <- gsub("([a-z])([A-Z])","\\1_\\2", txt) # Remove camel-case
-  txt <- gsub(" ","_",txt)              # Change interior space to underscore
-  txt <- tolower(txt)                   # to lower case
-  txt <- gsub("[^_[:alnum:]]","",txt)   # Remove punctuation
+  txt <- gsub(" ","_",txt)                     # Change interior space to underscore
+  txt <- tolower(txt)                          # to lower case
+  txt <- gsub("[^_[:alnum:]]","",txt)          # Remove punctuation
   return(txt)
 }
+
+
+
+# STEP 1: DOWNLOAD AND UNZIP THE DATA ----------------------
+#         IF THE DATA IS ALREAD DOWNLOADED AND UNZIPPED, ---
+#         YOU CAN SKIP THIS STEP ---------------------------
+# ----------------------------------------------------------
 
 # CREATE A TEMPORARY FOLDER TO DOWNLOAD DATA
 tempfolder <- tempdir()
@@ -27,8 +37,14 @@ download.file(
 # UNZIP FILE INTO TEMP FOLDER
 unzip("dataset.zip")
 
+
+
+# STEP 2: CREATE TIDY DATASET ------------------------------
+#         IF YOU DID NOT RUN STEP 1, ALTER FIRST COMMAND ---
+# ----------------------------------------------------------
+
 # MOVE TO DATAFOLDER
-setwd("UCI HAR Dataset")
+setwd("UCI HAR Dataset") # <- CHANGE LOCATION IF NEEDED
 
 # READ IN FEATURE LIST
 features <- read.table(
@@ -64,9 +80,7 @@ for(g in groups){
 data <- rbindlist(data)
 
 # CHANGE VARIABLE NAMES - MAKE VARIABLE NAMES EASY TO READ
-
 feature_names <- namify(features[feature_idx, 2])
-
 setnames(data, c(feature_names, "activity_code", "group", "id"))
 
 # USE ACIVITY CODES (1, 2, 3, ...) TO APPEND ACTIVITY LABELS
@@ -75,6 +89,7 @@ activities <- fread(
   input = "activity_labels.txt",
   col.names = c("","activity")
 )
+activities[, activity := tolower(activity)] # (OPTIONAL) make labels lower case
 setkey(data, activity_code)
 data[activities, activity := activity]
 
@@ -82,4 +97,33 @@ data[activities, activity := activity]
 data_summary <- data[, lapply(.SD, mean), by = .(id, activity), .SDcols = feature_names]
 setkey(data_summary, id, activity)
 
-write.table(data_summary, file = "tidy-dataset.txt", row.names = FALSE)
+# MELT DATA TO BE IN LONG FORMAT WITH THE FOLLOWING COLUMNS:
+# id, activity, measure, avg_mean, avg_std
+#
+# While other forms of the data may also be tidy, I think this
+# form is very helpful and intuitive because it reflects the
+# hierarchical nature of the data- participants, activities, measures.
+
+feature_names[grep("_mean_", feature_names)]
+
+data_summary_long <- melt(
+  data = data_summary, 
+  id.vars = c("id","activity"),
+  variable.name = "measure",
+  variable.factor = FALSE
+  )
+
+has_word <- function(x, word){
+  out <- rep(FALSE, length(x)); 
+  out[grep(word, x)] <- TRUE; 
+  out 
+} 
+
+data_summary_long[, avg := ifelse(has_word(measure, "_mean"), "avg_mean", "avg_std") ]
+data_summary_long[, measure := gsub("_mean_|_mean|_std_|_std","", measure)]
+
+dsl <- dcast(data_summary_long, id+activity+measure ~ avg, value.var = "value")
+
+
+# WRITE DATASET TO FILE
+write.table(dsl, file = "tidy-dataset.txt", row.names = FALSE)

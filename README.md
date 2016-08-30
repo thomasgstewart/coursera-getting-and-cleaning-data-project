@@ -8,7 +8,7 @@ This project includes the following files:
 
 * **[run_analysis.R (link)](./run_analysis.R)** - An .R file which downloads the data then generates a tidy dataset.
 
-* **[CodeBooke.md (link)](./CodeBook.md)** - A description of the variables in the tidy dataset which is output by `run_analysis.R`.
+* **[CodeBook.md (link)](./CodeBook.md)** - A description of the variables in the tidy dataset which is output by `run_analysis.R`.
 
 ## DETAILS ABOUT THE ANALYSIS
 
